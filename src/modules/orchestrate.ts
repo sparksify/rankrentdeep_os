@@ -51,10 +51,21 @@ export async function runResearch(
   const demand = await runDemandExtraction(seo, { keyword, location });
 
   // --- Module C: rankability ---
+  const { data: history } = await db
+    .from("serp_history")
+    .select("domains")
+    .eq("candidate_id", candidate.id)
+    .order("collected_at", { ascending: true })
+    .limit(10);
+  const historyDomains = (history ?? []).map(
+    (h) => (h.domains as string[]) ?? [],
+  );
+
   const rankability = await runRankabilityAnalysis(seo, {
     keyword,
     location,
     targetUrl: domain,
+    historyDomains,
   });
 
   // --- Module D: rentability ---
@@ -217,6 +228,8 @@ async function persist(
       timeToRankTop3Months: rankability.timeToRankTop3Months,
       linkBudget: rankability.linkBudget,
       contentGaps: rankability.contentGaps,
+      volatility: rankability.volatility,
+      snapshotCount: rankability.snapshotCount,
     },
     rentability_details: {
       potentialRenters: rentability.potentialRenters,

@@ -151,3 +151,11 @@ export type CommitteeReportRow = {
   error: string | null;
   created_at: string;
 }
+
+export type SerpHistoryRow = {
+  id: string;
+  candidate_id: string;
+  keyword: string;
+  domains: unknown[];
+  collected_at: string;
+}

@@ -12,6 +12,8 @@ export interface RankabilityInput {
   keyword: string;
   location: string;
   targetUrl?: string;
+  /** Historical top-10 domain snapshots (chronological) for volatility. */
+  historyDomains?: string[][];
 }
 
 const ENRICH_CONCURRENCY = 5;
@@ -42,7 +44,10 @@ export async function runRankabilityAnalysis(
     if (hit) topResults[i] = hit;
   }
 
-  return buildRankabilityResult({ topResults });
+  return buildRankabilityResult({
+    topResults,
+    historyDomains: input.historyDomains,
+  });
 }
 
 async function enrichWithConcurrency(

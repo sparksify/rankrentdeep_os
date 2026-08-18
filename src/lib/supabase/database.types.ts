@@ -13,6 +13,7 @@ import type {
   ProjectRow,
   ResearchRunRow,
   ScoreRow,
+  SerpHistoryRow,
   SerpResultRow,
 } from "./types";
 
@@ -123,6 +124,12 @@ export interface Database {
             referencedColumns: ["id"];
           },
         ];
+      };
+      serp_history: {
+        Row: SerpHistoryRow;
+        Insert: Partial<SerpHistoryRow>;
+        Update: Partial<SerpHistoryRow>;
+        Relationships: [CandidateRel];
       };
       cache_entries: {
         Row: CacheEntryRow;

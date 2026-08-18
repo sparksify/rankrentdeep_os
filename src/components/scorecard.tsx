@@ -24,6 +24,8 @@ export function Scorecard({ score }: { score: ScoreRow }) {
     confidenceInterval?: [number, number];
     timeToRankTop3Months?: number;
     linkBudget?: number;
+    volatility?: number;
+    snapshotCount?: number;
   } | null;
 
   const rent = score.rentability_details as {
@@ -90,6 +92,12 @@ export function Scorecard({ score }: { score: ScoreRow }) {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Link budget</span>
             <span className="font-medium">{rank?.linkBudget ?? "—"} ref. domains</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">SERP volatility</span>
+            <span className="font-medium">
+              {rank?.snapshotCount ? `${formatScore(rank.volatility)} (${rank.snapshotCount} snapshots)` : "—"}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Entity ambiguity</span>

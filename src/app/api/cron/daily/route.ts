@@ -13,16 +13,24 @@ export async function POST(req: NextRequest) {
   }
 
   const db = getAdminClient();
-  const { data } = await db
+
+  // Built domains: re-scrape to track our own rankings (feedback loop).
+  const { data: built } = await db
     .from("candidates")
     .select("id")
-    .in("status", ["built", "scored"]);
-
-  let queued = 0;
-  for (const c of data ?? []) {
+    .eq("status", "built");
+  for (const c of built ?? []) {
     await enqueueJob(db, "rescrape", { candidateId: c.id });
-    queued++;
   }
 
-  return NextResponse.json({ queued });
+  // Pre-build candidates: snapshot the competitor SERP for volatility tracking.
+  const { data: researching } = await db
+    .from("candidates")
+    .select("id")
+    .in("status", ["scored", "researching"]);
+  for (const c of researching ?? []) {
+    await enqueueJob(db, "snapshot", { candidateId: c.id });
+  }
+
+  return NextResponse.json({ queued: (built?.length ?? 0) + (researching?.length ?? 0) });
 }

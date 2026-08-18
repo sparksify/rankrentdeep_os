@@ -144,6 +144,10 @@ export interface RankabilityResult {
   linkBudget: number;
   topResults: SerpResult[];
   contentGaps: string[];
+  /** 0..100 — how much the top-10 SERP churns between snapshots (higher = easier). */
+  volatility: number;
+  /** Number of SERP snapshots used to compute volatility. */
+  snapshotCount: number;
 }
 
 // --- Module D: Rentability --------------------------------------------------

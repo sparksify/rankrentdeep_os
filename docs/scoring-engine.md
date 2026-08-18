@@ -70,6 +70,10 @@ is the inverse.
 - **Link budget** = `round(avgReferringDomains * 0.8)`.
 - **Content gaps** = thin content (<800 words avg), weak local signals (<50),
   slow pages (<60), no exact-match domain, directory-heavy SERP.
+- **SERP volatility** (0–100) = mean Jaccard distance between consecutive
+  top-10 domain snapshots (`serp_history`). High churn = unstable incumbents =
+  easier to rank. With ≥2 snapshots, volatility is blended into rankability at
+  10% weight: `rankability = clamp(0.9 * base + 0.1 * volatility)`.
 
 ## 5. Module D — Rentability & Monetization
 

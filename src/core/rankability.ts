@@ -105,22 +105,53 @@ export function contentGaps(topResults: SerpResult[]): string[] {
   return gaps;
 }
 
+/**
+ * SERP volatility (0..100) from a series of top-10 domain snapshots.
+ * Measures churn via mean Jaccard distance between consecutive snapshots.
+ * High volatility => incumbents are unstable => easier to displace.
+ */
+export function serpVolatility(snapshots: string[][]): number {
+  if (snapshots.length < 2) return 0;
+  let total = 0;
+  for (let i = 1; i < snapshots.length; i++) {
+    const prev = new Set(snapshots[i - 1].slice(0, 10));
+    const curr = new Set(snapshots[i].slice(0, 10));
+    const union = new Set([...prev, ...curr]).size;
+    if (union === 0) continue;
+    const intersection = [...curr].filter((d) => prev.has(d)).length;
+    total += 1 - intersection / union;
+  }
+  return clamp100((total / (snapshots.length - 1)) * 100);
+}
+
 // --- Full result ------------------------------------------------------------
 
 export interface BuildRankabilityInput {
   topResults: SerpResult[];
+  /** Historical top-10 domain snapshots (chronological) for volatility. */
+  historyDomains?: string[][];
 }
 
 export function buildRankabilityResult(input: BuildRankabilityInput): RankabilityResult {
   const a = modelA(input.topResults);
   const b = modelB(input.topResults);
   const strength = (a + b) / 2;
-  const rankability = rankabilityFromStrength(strength);
+  const baseRankability = rankabilityFromStrength(strength);
   const agreement = modelAgreement(a, b);
 
   // Confidence interval: spread between the two models.
   const low = rankabilityFromStrength(Math.max(a, b));
   const high = rankabilityFromStrength(Math.min(a, b));
+
+  const history = input.historyDomains ?? [];
+  const volatility = serpVolatility(history);
+
+  // With ≥2 snapshots, blend volatility in (10% weight) — churn is a positive
+  // signal. Without history, the base score is unchanged.
+  const rankability =
+    history.length >= 2
+      ? clampScore(baseRankability * 0.9 + volatility * 0.1)
+      : baseRankability;
 
   return {
     modelAScore: clampScore(rankabilityFromStrength(a)),
@@ -132,5 +163,7 @@ export function buildRankabilityResult(input: BuildRankabilityInput): Rankabilit
     linkBudget: linkBudget(input.topResults),
     topResults: input.topResults,
     contentGaps: contentGaps(input.topResults),
+    volatility,
+    snapshotCount: history.length,
   };
 }

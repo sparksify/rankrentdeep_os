@@ -25,6 +25,11 @@ export async function processJob(
         await rescrapeCandidate(db, candidateId);
         break;
       }
+      case "snapshot": {
+        const candidateId = job.payload.candidateId as string;
+        await snapshotSerp(db, candidateId);
+        break;
+      }
       case "recalc": {
         const candidateId = job.payload.candidateId as string;
         await researchCandidate(db, candidateId);
@@ -107,6 +112,40 @@ async function rescrapeCandidate(
     date: new Date().toISOString().slice(0, 10),
     rankings: { [candidate.keyword]: position },
   });
+}
+
+async function snapshotSerp(
+  db: SupabaseClient<Database>,
+  candidateId: string,
+): Promise<void> {
+  const { data: candidate } = await db
+    .from("candidates")
+    .select("*")
+    .eq("id", candidateId)
+    .single();
+  if (!candidate) return;
+
+  const seo = createSeoClient(db);
+  const serp = await seo.serpOverview(candidate.keyword, candidate.location);
+  const domains = serp
+    .filter((r) => r.resultType !== "ads")
+    .slice(0, 10)
+    .map((r) => hostOf(r.url));
+
+  if (domains.length === 0) return;
+  await db.from("serp_history").insert({
+    candidate_id: candidateId,
+    keyword: `${candidate.keyword} ${candidate.location}`,
+    domains,
+  });
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 }
 
 async function generateReport(db: SupabaseClient<Database>): Promise<void> {

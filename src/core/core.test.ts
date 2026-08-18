@@ -18,6 +18,7 @@ import {
   rentalRange,
   resolveEntity,
   resolveWeights,
+  serpVolatility,
   sourceAgreement,
 } from "./index";
 import type { Business, PlaceCandidate, SerpResult } from "./types";
@@ -158,6 +159,15 @@ it("detects model disagreement", () => {
 
   it("model A and B are independent", () => {
     expect(modelA(weakSerp)).not.toBe(modelB(weakSerp));
+  });
+
+  it("computes SERP volatility from domain snapshots", () => {
+    const stable = [["a.com", "b.com", "c.com"], ["a.com", "b.com", "c.com"]];
+    const churning = [["a.com", "b.com", "c.com"], ["x.com", "y.com", "z.com"]];
+    expect(serpVolatility(stable)).toBeLessThan(10);
+    expect(serpVolatility(churning)).toBeGreaterThan(90);
+    expect(serpVolatility([])).toBe(0);
+    expect(serpVolatility([["a.com"]])).toBe(0);
   });
 });
 

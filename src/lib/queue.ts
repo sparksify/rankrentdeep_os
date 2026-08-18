@@ -8,7 +8,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
-export type JobType = "research" | "rescrape" | "recalc" | "report";
+export type JobType = "research" | "rescrape" | "snapshot" | "recalc" | "report";
 
 export async function enqueueJob(
   db: SupabaseClient<Database>,
