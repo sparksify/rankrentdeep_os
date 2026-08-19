@@ -82,8 +82,13 @@ npm run typecheck    # tsc --noEmit
 
 ## How it works
 
-1. Add candidates in the **Research Pipeline** (`/pipeline`) — individually or
-   in bulk (`domain, keyword, location` per line, up to 200 at once).
+**Autonomous discovery** (`/discovery`): hit "Start discovery scan" and the
+engine cross-joins a curated list of rank-and-rent service niches against ~100
+US metros, generating thousands of candidate hypotheses — no manual niche/city
+picking. The pipeline scores each one and the page ranks the winners.
+
+1. Add candidates manually in the **Research Pipeline** (`/pipeline`) — or just
+   run a discovery scan and let the engine generate them.
 2. Each candidate is enqueued in the `jobs` table. The cron worker
    (`/api/cron/worker`, every 5 minutes) claims jobs atomically via
    `claim_next_job` and runs the full pipeline (Modules A–E).

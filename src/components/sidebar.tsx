@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Radar, AlertTriangle, MapPin, LineChart, Users } from "lucide-react";
+import { LayoutGrid, Radar, AlertTriangle, MapPin, LineChart, Users, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
+  { href: "/discovery", label: "Discovery", icon: Search },
   { href: "/", label: "Batch Overview", icon: LayoutGrid },
   { href: "/pipeline", label: "Research Pipeline", icon: Radar },
   { href: "/disagreements", label: "Model Disagreements", icon: AlertTriangle },
