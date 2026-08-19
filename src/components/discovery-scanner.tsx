@@ -8,15 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const MARKET_OPTIONS = [
-  { offset: 0, count: 25, label: "Top 25 metros (huge — mostly rejects)" },
-  { offset: 0, count: 50, label: "Top 50 metros" },
-  { offset: 50, count: 50, label: "Mid-size metros 50–100 (sweet spot)" },
-  { offset: 0, count: 100, label: "All 100 metros" },
+  { offset: 0, count: 50, label: "Top 50 metros (huge — EMDs mostly taken)" },
+  { offset: 50, count: 100, label: "Mid-size metros 50–150 (recommended)" },
+  { offset: 150, count: 100, label: "Smaller metros 150–250" },
+  { offset: 0, count: 1000, label: "All markets" },
 ];
 
 export function DiscoveryScanner() {
   const router = useRouter();
-  const [depth, setDepth] = useState(2);
+  const [depth, setDepth] = useState(1);
   const [scanning, setScanning] = useState(false);
   const [message, setMessage] = useState("");
   const [secret, setSecret] = useState("");
