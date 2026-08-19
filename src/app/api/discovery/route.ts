@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
     ? (body.markets as Market[])
     : DEFAULT_MARKETS;
 
+  if (typeof body?.marketOffset === "number" && body.marketOffset > 0) {
+    markets = markets.slice(body.marketOffset);
+  }
   if (typeof body?.marketCount === "number" && body.marketCount > 0) {
     markets = markets.slice(0, body.marketCount);
   }

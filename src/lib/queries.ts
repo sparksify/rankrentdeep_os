@@ -29,12 +29,22 @@ export interface CandidateDetail {
 
 export async function listCandidates(): Promise<CandidateWithScore[]> {
   const db = getAdminClient();
-  const { data, error } = await db
-    .from("candidates")
-    .select("*, scores(*)")
-    .order("created_at", { ascending: false });
-  if (error) return [];
-  return (data ?? []) as CandidateWithScore[];
+  // Supabase caps a single query at 1000 rows; page through to get them all.
+  const all: CandidateWithScore[] = [];
+  const pageSize = 1000;
+  let from = 0;
+  for (;;) {
+    const { data, error } = await db
+      .from("candidates")
+      .select("*, scores(*)")
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error || !data || data.length === 0) break;
+    all.push(...(data as CandidateWithScore[]));
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
 }
 
 export async function getCandidateDetail(id: string): Promise<CandidateDetail | null> {

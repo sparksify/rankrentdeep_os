@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const MARKET_OPTIONS = [
-  { value: 25, label: "Top 25 metros (~600 candidates)" },
-  { value: 50, label: "Top 50 metros (~1,200 candidates)" },
-  { value: 100, label: "All 100 metros (~2,400 candidates)" },
+  { offset: 0, count: 25, label: "Top 25 metros (huge — mostly rejects)" },
+  { offset: 0, count: 50, label: "Top 50 metros" },
+  { offset: 50, count: 50, label: "Mid-size metros 50–100 (sweet spot)" },
+  { offset: 0, count: 100, label: "All 100 metros" },
 ];
 
 export function DiscoveryScanner() {
-  const [marketCount, setMarketCount] = useState(50);
+  const router = useRouter();
+  const [depth, setDepth] = useState(2);
   const [scanning, setScanning] = useState(false);
   const [message, setMessage] = useState("");
   const [secret, setSecret] = useState("");
@@ -23,11 +26,12 @@ export function DiscoveryScanner() {
   async function startScan() {
     setScanning(true);
     setMessage("");
+    const opt = MARKET_OPTIONS[depth];
     try {
       const res = await fetch("/api/discovery", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ marketCount }),
+        body: JSON.stringify({ marketCount: opt.count, marketOffset: opt.offset }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -37,6 +41,7 @@ export function DiscoveryScanner() {
           `Seeded ${json.queued} new candidates (${json.skippedDuplicates} duplicates skipped). ` +
             `They'll be researched by the worker and ranked here.`,
         );
+        router.refresh();
       }
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Network error");
@@ -58,6 +63,7 @@ export function DiscoveryScanner() {
         setWorkerMsg(json.error ?? "Worker failed");
       } else {
         setWorkerMsg(`Processed ${json.processed} jobs. Run again to continue.`);
+        router.refresh();
       }
     } catch (e) {
       setWorkerMsg(e instanceof Error ? e.message : "Network error");
@@ -80,12 +86,12 @@ export function DiscoveryScanner() {
           <div className="space-y-2">
             <Label>Market depth</Label>
             <select
-              value={marketCount}
-              onChange={(e) => setMarketCount(Number(e.target.value))}
+              value={depth}
+              onChange={(e) => setDepth(Number(e.target.value))}
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
             >
-              {MARKET_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-background">
+              {MARKET_OPTIONS.map((o, i) => (
+                <option key={o.label} value={i} className="bg-background">
                   {o.label}
                 </option>
               ))}
