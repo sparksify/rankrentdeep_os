@@ -5,4 +5,4 @@
 -- ===========================================================================
 
 create unique index if not exists candidates_domain_unique
-  on public.candidates (lower(domain));
+  on public.candidates (domain);
