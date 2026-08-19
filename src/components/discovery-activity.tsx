@@ -71,6 +71,27 @@ export function DiscoveryActivity() {
     };
   }, [supabase]);
 
+  // Auto-drain the queue while there is work to do. Each call processes a
+  // batch; we wait for it to finish before firing the next one (no pile-up),
+  // and stop when the queue empties.
+  useEffect(() => {
+    if (queued === 0 && researching === 0) return;
+    let cancelled = false;
+    async function tick() {
+      if (cancelled) return;
+      try {
+        await fetch("/api/cron/worker", { method: "POST" });
+      } catch {
+        // ignore transient failures; keep trying
+      }
+      if (!cancelled) setTimeout(tick, 2000);
+    }
+    tick();
+    return () => {
+      cancelled = true;
+    };
+  }, [queued, researching]);
+
   const working = researching > 0 || queued > 0;
 
   return (
